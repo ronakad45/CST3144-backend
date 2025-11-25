@@ -38,3 +38,26 @@ app.get('/lessons', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch lessons' });
     }
 });
+
+
+// POST route - save a new order
+app.post('/orders', async (req, res) => {
+    try {
+        const order = req.body;
+
+        // Add timestamp to order
+        order.orderDate = new Date();
+        
+        const result = await db.collection('orders').insertOne(order);
+        console.log('Order saved with ID:', result.insertedId);
+        
+        res.status(201).json({ 
+            message: 'Order created successfully',
+            orderId: result.insertedId,
+            order: order
+        });
+    } catch (error) {
+        console.error('Error saving order:', error);
+        res.status(500).json({ error: 'Failed to save order' });
+    }
+});
