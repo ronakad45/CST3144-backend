@@ -5,7 +5,7 @@ const path = require('path');
 const app = express();
 app.set('port', 3000);
 
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient, ObjectId } = require('mongodb');
 
 let db;
 
@@ -61,3 +61,49 @@ app.post('/orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to save order' });
     }
 });
+
+// PUT route update lesson spaces
+app.put('/lessons/:id', async (req, res) => {
+    try {
+        const lessonId = req.params.id;
+        const { spaces } = req.body;
+
+        // Validate spaces value
+        if (spaces === undefined || spaces < 0) {
+            return res.status(400).json({ 
+                message: 'Spaces must be a non-negative number' 
+            });
+        }
+
+        // Update the lesson
+        const result = await db.collection('lessons').updateOne(
+            { _id: new ObjectId(lessonId) },
+            { $set: { spaces: spaces } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ 
+                error: 'Lesson not found',
+                message: `No lesson found with ID: ${lessonId}` 
+            });
+        }
+
+        console.log(`Updated lesson ${lessonId} - new spaces: ${spaces}`);
+        
+        res.json({ 
+            message: 'Lesson updated successfully',
+            lessonId: lessonId,
+            newSpaces: spaces,
+            modifiedCount: result.modifiedCount
+        });
+    } catch (error) {
+        console.error('Error updating lesson:', error);
+        res.status(500).json({ error: 'Failed to update lesson' });
+    }
+});
+
+
+const port = process.env.PORT || 3000
+
+app.listen(port)
+
