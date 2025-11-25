@@ -27,3 +27,14 @@ app.use((req, res, next) => {
 // Static File Middleware
 app.use('/images', express.static(path.join(__dirname, 'static')));
 
+// GET route which retrieves all lessons from db
+app.get('/lessons', async (req, res) => {
+    try {
+        const lessons = await db.collection('lessons').find({}).toArray();
+        console.log(`Retrieved ${lessons.length} lessons`);
+        res.json(lessons);
+    } catch (error) {
+        console.error('Error fetching lessons:', error);
+        res.status(500).json({ error: 'Failed to fetch lessons' });
+    }
+});
