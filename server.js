@@ -151,6 +151,14 @@ app.get('/', (req, res) => {
     });
 });
 
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ 
+        error: 'Not Found',
+        message: `Route ${req.method} ${req.url} not found` 
+    });
+});
+
 const port = process.env.PORT || 3000
 
 app.listen(port)
