@@ -135,6 +135,35 @@ app.get('/orders', async (req, res) => {
     }
 });
 
+//get route search functionality
+app.get('/search', async (req, res) => {
+    try {
+        const searchQuery = req.query.q || '';
+        console.log(`Search query: ${searchQuery}`);
+        
+        if (!searchQuery) {
+            const lessons = await db.collection('lessons').find({}).toArray();
+            return res.json(lessons);
+        }
+
+        // Create text search across multiple fields
+        const lessons = await db.collection('lessons').find({
+            $or: [
+                { subject: { $regex: searchQuery, $options: 'i' } },
+                { location: { $regex: searchQuery, $options: 'i' } },
+                { price: { $regex: searchQuery, $options: 'i' } },
+                { spaces: { $regex: searchQuery, $options: 'i' } }
+            ]
+        }).toArray();
+
+        console.log(`Found ${lessons.length} matching lessons`);
+        res.json(lessons);
+    } catch (error) {
+        console.error('Error searching lessons:', error);
+        res.status(500).json({ error: 'Failed to search lessons' });
+    }
+});
+
 // Root route
 app.get('/', (req, res) => {
     res.json({ 
