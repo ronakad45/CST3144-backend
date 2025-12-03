@@ -159,6 +159,15 @@ app.use((req, res) => {
     });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
+    res.status(500).json({ 
+        error: 'Internal Server Error',
+        message: err.message 
+    });
+});
+
 const port = process.env.PORT || 3000
 
 app.listen(port)
