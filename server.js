@@ -135,6 +135,22 @@ app.get('/orders', async (req, res) => {
     }
 });
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'After School Lessons API',
+        endpoints: {
+            'GET /lessons': 'Get all lessons',
+            'GET /lessons/:id': 'Get a specific lesson',
+            'GET /search?q=query': 'Search lessons',
+            'POST /orders': 'Create a new order',
+            'PUT /lessons/:id': 'Update lesson spaces',
+            'GET /orders': 'Get all orders',
+            'GET /images/:filename': 'Get lesson image'
+        }
+    });
+});
+
 const port = process.env.PORT || 3000
 
 app.listen(port)
