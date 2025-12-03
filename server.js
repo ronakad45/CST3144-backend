@@ -123,6 +123,18 @@ app.get('/lessons/:id', async (req, res) => {
 });
 
 
+// GET route, to get all orders
+app.get('/orders', async (req, res) => {
+    try {
+        const orders = await db.collection('orders').find({}).toArray();
+        console.log(`Retrieved ${orders.length} orders`);
+        res.json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+});
+
 const port = process.env.PORT || 3000
 
 app.listen(port)
