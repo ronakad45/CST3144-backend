@@ -102,6 +102,26 @@ app.put('/lessons/:id', async (req, res) => {
     }
 });
 
+// GET route to get a specific lesson by ID
+app.get('/lessons/:id', async (req, res) => {
+    try {
+        const lessonId = req.params.id;
+        const lesson = await db.collection('lessons').findOne({ _id: new ObjectId(lessonId) });
+        
+        if (!lesson) {
+            return res.status(404).json({ 
+                error: 'Lesson not found',
+                message: `No lesson found with ID: ${lessonId}` 
+            });
+        }
+        
+        res.json(lesson);
+    } catch (error) {
+        console.error('Error fetching lesson:', error);
+        res.status(500).json({ error: 'Failed to fetch lesson' });
+    }
+});
+
 
 const port = process.env.PORT || 3000
 
