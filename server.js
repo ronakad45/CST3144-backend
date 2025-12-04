@@ -138,9 +138,11 @@ app.get('/orders', async (req, res) => {
 //get route search functionality
 app.get('/search', async (req, res) => {
     try {
+        //read query parameter q
         const searchQuery = req.query.q || '';
         console.log(`Search query: ${searchQuery}`);
         
+        //if empty returns all lessons
         if (!searchQuery) {
             const lessons = await db.collection('lessons').find({}).toArray();
             return res.json(lessons);
@@ -148,12 +150,13 @@ app.get('/search', async (req, res) => {
 
         // Create text search across multiple fields
         const lessons = await db.collection('lessons').find({
+            //options: 'i', makes search case insensitive for strings
             $or: [
                 { subject: { $regex: searchQuery, $options: 'i' } },
                 { location: { $regex: searchQuery, $options: 'i' } },
                 { price: { $regex: searchQuery, $options: 'i' } },
                 { spaces: { $regex: searchQuery, $options: 'i' } }
-            ]
+            ] // used mongo 'regex' search across lessons
         }).toArray();
 
         console.log(`Found ${lessons.length} matching lessons`);
@@ -164,7 +167,7 @@ app.get('/search', async (req, res) => {
     }
 });
 
-// Root route
+// Root route to give list of available endpoints
 app.get('/', (req, res) => {
     res.json({ 
         message: 'After School Lessons API',
@@ -175,7 +178,7 @@ app.get('/', (req, res) => {
             'POST /orders': 'Create a new order',
             'PUT /lessons/:id': 'Update lesson spaces',
             'GET /orders': 'Get all orders',
-            'GET /images/:filename': 'Get lesson image'
+            'GET /images/afterschoolAct.jpg': 'Get image'
         }
     });
 });
