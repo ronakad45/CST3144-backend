@@ -21,8 +21,6 @@ app.use(express.json());
 app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] ${req.method} ${req.url}`);
-    console.log('Request Headers:', req.headers);
-    console.log('Request Body:', req.body);
     next();
 });
 
@@ -170,6 +168,10 @@ app.get('/search', async (req, res) => {
                 lesson.spaces.toString().includes(searchQuery)
             );
         });
+
+        console.log(
+          `🔍 Search Query: "${searchQuery}" → Found ${filteredLessons.length} matching lesson(s)`
+        );
 
         res.json(filteredLessons);
     } catch (error) {
