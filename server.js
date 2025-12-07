@@ -17,15 +17,33 @@ MongoClient.connect('mongodb+srv://ronakad45:eOdYpsUA4uKbQ4XR@cluster0.vat1b.mon
 app.use(cors());
 app.use(express.json());
 
-// Logger Middleware logs all requests
+// Logger Middleware logs all requests 
 app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] ${req.method} ${req.url}`);
+    console.log('Request Headers:', req.headers);
+    console.log('Request Body:', req.body);
     next();
 });
 
 // Static File Middleware
 app.use('/images', express.static(path.join(__dirname, 'static')));
+
+// Root route to give list of available endpoints
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'After School Lessons API',
+        endpoints: {
+            'GET /lessons': 'Get all lessons',
+            'GET /lessons/:id': 'Get a specific lesson',
+            'GET /search?q=query': 'Search lessons',
+            'POST /orders': 'Create a new order',
+            'PUT /lessons/:id': 'Update lesson spaces',
+            'GET /orders': 'Get all orders',
+            'GET /images/afterschoolAct.jpg': 'Get image'
+        }
+    });
+});
 
 // GET route which retrieves all lessons from db
 app.get('/lessons', async (req, res) => {
@@ -40,7 +58,7 @@ app.get('/lessons', async (req, res) => {
 });
 
 
-// POST route - save a new order
+// POST route to save a new order
 app.post('/orders', async (req, res) => {
     try {
         const order = req.body;
@@ -71,7 +89,7 @@ app.put('/lessons/:id', async (req, res) => {
         // Validate spaces value
         if (spaces === undefined || spaces < 0) {
             return res.status(400).json({ 
-                message: 'Spaces must be a non-negative number' 
+                message: 'Spaces must be a positive number' 
             });
         }
 
@@ -138,50 +156,28 @@ app.get('/orders', async (req, res) => {
 //get route search functionality
 app.get('/search', async (req, res) => {
     try {
-        //read query parameter q
-        const searchQuery = req.query.q || '';
-        console.log(`Search query: ${searchQuery}`);
-        
-        //if empty returns all lessons
-        if (!searchQuery) {
-            const lessons = await db.collection('lessons').find({}).toArray();
-            return res.json(lessons);
-        }
+        const searchQuery = req.query.q?.toLowerCase() || '';
 
-        // Create text search across multiple fields
-        const lessons = await db.collection('lessons').find({
-            //options: 'i', makes search case insensitive for strings
-            $or: [
-                { subject: { $regex: searchQuery, $options: 'i' } },
-                { location: { $regex: searchQuery, $options: 'i' } },
-                { price: { $regex: searchQuery, $options: 'i' } },
-                { spaces: { $regex: searchQuery, $options: 'i' } }
-            ] // used mongo 'regex' search across lessons
-        }).toArray();
+        // first to Get ALL lessons from MongoDB
+        const lessons = await db.collection('lessons').find({}).toArray();
 
-        console.log(`Found ${lessons.length} matching lessons`);
-        res.json(lessons);
+        //followed by filtering
+        const filteredLessons = lessons.filter(lesson => {
+            return (
+                lesson.subject.toLowerCase().includes(searchQuery) ||
+                lesson.location.toLowerCase().includes(searchQuery) ||
+                lesson.price.toString().includes(searchQuery) ||
+                lesson.spaces.toString().includes(searchQuery)
+            );
+        });
+
+        res.json(filteredLessons);
     } catch (error) {
-        console.error('Error searching lessons:', error);
-        res.status(500).json({ error: 'Failed to search lessons' });
+        console.error('Search error:', error);
+        res.status(500).json({ error: 'Search failed' });
     }
 });
 
-// Root route to give list of available endpoints
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'After School Lessons API',
-        endpoints: {
-            'GET /lessons': 'Get all lessons',
-            'GET /lessons/:id': 'Get a specific lesson',
-            'GET /search?q=query': 'Search lessons',
-            'POST /orders': 'Create a new order',
-            'PUT /lessons/:id': 'Update lesson spaces',
-            'GET /orders': 'Get all orders',
-            'GET /images/afterschoolAct.jpg': 'Get image'
-        }
-    });
-});
 
 // 404 handler
 app.use((req, res) => {
