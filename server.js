@@ -170,7 +170,7 @@ app.get('/search', async (req, res) => {
         });
 
         console.log(
-          `🔍 Search Query: "${searchQuery}" → Found ${filteredLessons.length} matching lesson(s)`
+          `Search Query: "${searchQuery}" → Found ${filteredLessons.length} matching lesson(s)`
         );
 
         res.json(filteredLessons);
